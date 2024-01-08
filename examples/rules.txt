@@ -1,0 +1,8 @@
+define EDeletion e -> 0 || _ "^" [ i n g | e d ] ;
+define EInsertion [..] -> e || s | z | x | c h | s h _ "^" s ;
+define YReplacement y -> i e || _ "^" s    ,,
+                    y -> i   || _ "^" e d  ;
+define Cleanup "^" -> 0;
+
+regex Lexicon .o. EDeletion .o. EInsertion .o. YReplacement .o. Cleanup;
+

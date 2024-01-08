@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Grammarian</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="main.css">
+    <script src="jquery.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+</head>
+<body>
+
+<script>
+$(window).on('load', function () {
+    // function composition function. it was not necessary, just for fun
+    const pipe = function (f, g) {
+        return function (data) {
+            return g(f(data));
+        }
+    };
+
+    var splitLines = function (text) {
+        return text.replace(/\n/g, '\n<br/>\n');
+    };
+
+    var removeBrackets = function(text) {
+        return text.replace(/[()]/g, '');
+    };
+
+    var doNothing = function (text) { return text; };
+
+    var getResults = function (endpoint, url, srcElem, targetElem, convertData) {
+        targetElem.val('');
+        console.log($("#rules").val());
+        $.ajax({
+            type: 'POST',
+            url: endpoint.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, ''),
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify({rules: $("#rules").val(), lexicon: $("#lexicon").val(), inputData: srcElem.val()})
+        }).done(function (data) {
+            console.log(data);
+            targetElem.val(convertData(data['outputData']));
+            $("#result").text("Success!")
+        }).fail(function (jqXHR) {
+            $("#result").text("Error: " + (jqXHR.responseJSON ? jqXHR.responseJSON['error'] : 'no JSON response'));
+        });
+    };
+
+    $("#apply").click(function () {
+        getResults($('#endpoint').val(), "/api/parse", $('#plain'), $('#parsed'), doNothing);
+    });
+
+    $("#generate").click(function () {
+        getResults($('#endpoint').val(), "/api/generate", $('#parsed'), $('#plain'), doNothing);
+    });
+
+    $("#save").click(function () {
+        getResults($('#endpoint').val(), "/api/save", $('#rules'), $('#result'), doNothing);
+    });
+
+});
+</script>
+
+<div class="container">
+    <div class="jumbotron">
+        <h3>FST Writer</h3>
+    </div>
+
+    <form id="form" method="POST">
+        <div class="panel panel-default">
+            <div class="panel-heading">Input data</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="rules">Rules:</label>
+                            <textarea name="rules" class="form-control" rows="10" cols="80" id="rules"></textarea>
+                        </div>
+                        <button type="button" id="save" class="btn btn-default">Save</button>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="lexicon">Lexicon:</label>
+                            <textarea name="lexicon" class="form-control" rows="10" cols="80" id="lexicon"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="plain">Text / Words:</label>
+                            <textarea name="plain" class="form-control" rows="10" cols="80" id="plain"></textarea>
+                        </div>
+                        <button type="button" id="apply" class="btn btn-default">→ Apply</button>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="parsed">Parsed:</label>
+                            <textarea name="parsed" class="form-control" rows="10" cols="80" id="parsed"></textarea>
+                        </div>
+			<!--<button type="button" id="generate" class="btn btn-default">← Generate</button>-->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="endpoint">Endpoint:</label>
+                    <input type="text" class="form-control" name="endpoint" id="endpoint" value="{{ request.url }}">
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            Debug messages
+        </div>
+        <div class="panel-body" id="result">
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
